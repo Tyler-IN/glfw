@@ -43,3 +43,27 @@ jobs:
           name: Build artifacts for ${{ matrix.os }}
           path: ./build/
           if-no-files-found: error
+
+  build-ubuntu-16.04:
+    if: "contains(github.event.head_commit.message, '[ubuntu 16.04]')"
+    runs-on: ubuntu-16.04
+    steps:
+      - name: Cancel Redundant Jobs
+        uses: technote-space/auto-cancel-redundant-job@v1.2.2
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install Linux Dependencies
+        run: |
+          sudo apt-get install -yqq extra-cmake-modules libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libxext-dev # libwayland-dev libxkbcommon-dev libegl1-mesa-dev wayland-protocols
+      - name: Configure with CMake
+        run: |
+          CFLAGS="-g0 -O3 -flto" CXXFLAGS="-g0 -O3 -flto" cmake -S . -B build "-DCMAKE_BUILD_TYPE=Release" "-DBUILD_SHARED_LIBS=ON" "-DGFLW_USE_HYBRID_HPG=ON" "-DCMAKE_OSX_DEPLOYMENT_TARGET=10.8" # "-DGLFW_USE_WAYLAND=ON"
+      - name: Build with CMake
+        run: |
+          cmake --build build --target glfw
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: Build artifacts for ubuntu-16.04
+          path: ./build/
+          if-no-files-found: error
